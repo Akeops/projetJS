@@ -1,39 +1,58 @@
-let canvas, ctx;
-let joueur, niveauActuel;
-let tailleCellule = 20;
-let niveaux = [];
-let niveauActuelIndex = 0;
+import { Labyrinthe } from './labyrinthe.js';
+import { Joueur } from './joueur.js';
 
-window.onload = function() {
-    canvas = document.getElementById('canvasLabyrinthe');
-    ctx = canvas.getContext('2d');
-    joueur = { x: 0, y: 0 };
+export class Jeu {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.niveau = 1;
+        this.tailleCellule = 40;
+        this.depart = { x: 0, y: 0 };
+        this.arrivee = { x: 9, y: 9 }; // Changer les coordonnées d'arrivée selon votre labyrinthe
+        this.initialiserJeu();
+    }
 
-    // Créer des niveaux
-    niveaux.push(new Niveau(10, 10, { x: 0, y: 0 }, { x: 9, y: 9 }));
-    niveaux.push(new Niveau(15, 15, { x: 0, y: 0 }, { x: 14, y: 14 }));
-    // Ajouter plus de niveaux au besoin
+    initialiserJeu() {
+        this.labyrinthe = new Labyrinthe(10 + this.niveau, 10 + this.niveau, this.depart, this.arrivee);
+        this.joueur = new Joueur(this.depart.x, this.depart.y);
+        this.canvas.width = this.labyrinthe.largeur * this.tailleCellule;
+        this.canvas.height = this.labyrinthe.hauteur * this.tailleCellule;
+        this.dessiner();
+    }
 
-    niveauActuel = niveaux[0];
-    joueur = { ...niveauActuel.depart };
-    niveauActuel.dessiner(ctx, tailleCellule);
-    dessinerJoueur(joueur, ctx, tailleCellule);
+    deplacerJoueur(direction) {
+        let { x, y } = this.joueur;
+        switch(direction) {
+            case 'ArrowUp':    y--; break;
+            case 'ArrowDown':  y++; break;
+            case 'ArrowLeft':  x--; break;
+            case 'ArrowRight': x++; break;
+        }
+        if (this.joueur.deplacer(x, y, this.labyrinthe)) {
+            this.verifierSortie();
+            this.dessiner();
+        } else {
+            this.gererCollision();
+        }
+    }
 
-    document.addEventListener('keydown', function(e) {
-        deplacerJoueur(joueur, e, niveauActuel.labyrinthe, niveauActuel.largeur, niveauActuel.hauteur, tailleCellule, ctx);
-        niveauActuel.dessiner(ctx, tailleCellule);
-        dessinerJoueur(joueur, ctx, tailleCellule);
-    });
-};
+    verifierSortie() {
+        if (this.joueur.x === this.arrivee.x && this.joueur.y === this.arrivee.y) {
+            alert('Vous avez gagné !');
+            this.niveau++;
+            this.initialiserJeu();
+        }
+    }
 
-function passerAuNiveauSuivant() {
-    niveauActuelIndex++;
-    if (niveauActuelIndex < niveaux.length) {
-        niveauActuel = niveaux[niveauActuelIndex];
-        joueur = { ...niveauActuel.depart };
-        niveauActuel.dessiner(ctx, tailleCellule);
-        dessinerJoueur(joueur, ctx, tailleCellule);
-    } else {
-        alert("Félicitations, vous avez terminé tous les niveaux !");
+    gererCollision() {
+        alert('Perdu ! Vous avez touché un mur.');
+        this.joueur.x = this.depart.x;
+        this.joueur.y = this.depart.y;
+        this.dessiner();
+    }
+
+    dessiner() {
+        this.labyrinthe.dessiner(this.ctx, this.tailleCellule);
+        this.joueur.dessiner(this.ctx, this.tailleCellule);
     }
 }
