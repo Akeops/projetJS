@@ -1,8 +1,9 @@
 let canvas, ctx;
 let player, labyrinthe;
-let tailleCellule = 40;
-let largeurLabyrinthe = 10;
-let hauteurLabyrinthe = 10;
+let tailleCellule = 20;
+let tailleJoueur = tailleCellule / 2;
+let largeurLabyrinthe = 40;
+let hauteurLabyrinthe = 40;
 let depart = { x: 0, y: 0 };
 let arrivee = { x: largeurLabyrinthe - 1, y: hauteurLabyrinthe - 1 };
 
@@ -26,10 +27,11 @@ function genererLabyrinthe(largeur, hauteur) {
     for (let y = 0; y < hauteur; y++) {
         lab[y] = [];
         for (let x = 0; x < largeur; x++) {
-            lab[y][x] = false; // false indique un passage libre
+            lab[y][x] = Math.random() < 0.3;
         }
     }
-    // Ajoutez ici la logique pour créer des murs dans le labyrinthe
+    lab[depart.y][depart.x] = false;
+    lab[arrivee.y][arrivee.x] = false;
     return lab;
 }
 
@@ -43,7 +45,7 @@ function dessinerLabyrinthe() {
             }
         }
     }
-    // Dessiner le point de départ (rouge) et d'arrivée (vert)
+
     ctx.fillStyle = 'red';
     ctx.fillRect(depart.x * tailleCellule, depart.y * tailleCellule, tailleCellule, tailleCellule);
     ctx.fillStyle = 'green';
@@ -53,7 +55,7 @@ function dessinerLabyrinthe() {
 function dessinerJoueur() {
     ctx.fillStyle = 'blue';
     ctx.beginPath();
-    ctx.arc(player.x * tailleCellule + tailleCellule / 2, player.y * tailleCellule + tailleCellule / 2, tailleCellule / 4, 0, Math.PI * 2);
+    ctx.arc(player.x * tailleCellule + tailleCellule / 2, player.y * tailleCellule + tailleCellule / 2, tailleJoueur / 2, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -74,7 +76,7 @@ function deplacerJoueur(e) {
 
         if (player.x === arrivee.x && player.y === arrivee.y) {
             alert('Vous avez gagné !');
-            player = { ...depart };
+            passerAuNiveauSuivant();
         }
     } else {
         alert('Perdu ! Vous avez touché un mur.');
@@ -84,3 +86,4 @@ function deplacerJoueur(e) {
     dessinerLabyrinthe();
     dessinerJoueur();
 }
+
